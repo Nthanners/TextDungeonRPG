@@ -1,2 +1,2 @@
 # TextDungeonRPG
-A Test text-based dungeon RPG game.
+A text-based dungeon RPG game.
