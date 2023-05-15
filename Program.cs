@@ -1,180 +1,209 @@
-﻿using System;
-
-namespace DungeonRPG
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Welcome to the Dungeon RPG Game!\n");
-
-            Player player = new Player("Hero", 100, 10);
-
-            while (player.IsAlive)
-            {
-                Console.WriteLine("Player Health: {0}", player.Health);
-                Console.WriteLine();
-
-                Console.WriteLine("MENU:");
-                Console.WriteLine("1. Explore Dungeon");
-                Console.WriteLine("2. Rest");
-                Console.WriteLine("3. Exit");
-                Console.WriteLine("Enter your choice (1-3):");
-
-                int choice = GetInput(1, 3);
-                Console.WriteLine();
-
-                switch (choice)
-                {
-                    case 1:
-                        Console.WriteLine("You enter a dark room...");
-                        Console.WriteLine("A monster appears!");
-
-                        Enemy enemy = Enemy.GenerateRandomEnemy();
-
-                        while (enemy.IsAlive && player.IsAlive)
-                        {
-                            Console.WriteLine("\nPlayer's turn:");
-                            Console.WriteLine("1. Attack");
-                            Console.WriteLine("2. Flee");
-
-                            int battleChoice = GetInput(1, 2);
-
-                            if (battleChoice == 1)
-                            {
-                                int damage = player.Attack;
-                                Console.WriteLine("Player attacks and deals {0} damage to {1}!", damage, enemy.Name);
-                                enemy.TakeDamage(damage);
-                            }
-                            else
-                            {
-                                Console.WriteLine("Player flees the battle!");
-                                break;
-                            }
-
-                            if (enemy.IsAlive)
-                            {
-                                Console.WriteLine("\n{0}'s turn:", enemy.Name);
-                                int enemyDamage = enemy.Attack;
-                                Console.WriteLine("{0} attacks and deals {1} damage to the player!", enemy.Name, enemyDamage);
-                                player.TakeDamage(enemyDamage);
-                            }
-                        }
-
-                        if (enemy.IsAlive)
-                        {
-                            Console.WriteLine("\n{0} has defeated you!", enemy.Name);
-                            return;
-                        }
-                        else
-                        {
-                            Console.WriteLine("\nYou have defeated {0}!", enemy.Name);
-                            Console.WriteLine("You found a treasure chest and gained 50 gold.");
-                            player.Gold += 50;
-                        }
-
-                        break;
-
-                    case 2:
-                        Console.WriteLine("You find a safe spot to rest and regain your health.");
-                        player.Rest();
-                        Console.WriteLine("You feel refreshed and your health is fully restored.");
-                        break;
-
-                    case 3:
-                        Console.WriteLine("Exiting game...");
-                        return;
-                }
-            }
-        }
-
-        static int GetInput(int min, int max)
-        {
-            int choice;
-            while (!int.TryParse(Console.ReadLine(), out choice) || choice < min || choice > max)
-            {
-                Console.WriteLine("Invalid input. Please enter a number between {0} and {1}.", min, max);
-            }
-            return choice;
-        }
-    }
-
-     class Player
-    {
-        public string Name { get; }
-        public int Health { get; private set; }
-        public int Attack { get; private set; }
-        public int Gold { get; set; }
-
-        public bool IsAlive { get { return Health > 0; } }
-
-    public Player(string name, int health, int attack)
-    {
-        Name = name;
-        Health = health;
-        Attack = attack;
-        Gold = 0;
-    }
-
-    public int AttackEnemy()
-    {
-        return Attack;
-    }
-
-    public void TakeDamage(int damage)
-    {
-        Health -= damage;
-        if (Health < 0)
-        {
-            Health = 0;
-        }
-    }
-
-    public void Rest()
-    {
-        Health = 100;
-    }
-}
+using System;
 
 class Enemy
 {
-    private static Random random = new Random();
-
-    public string Name { get; }
     public int Health { get; private set; }
-    public int Attack { get; }
+    public int Attack { get; private set; }
+    public int Gold { get; private set; }
 
-    public bool IsAlive { get { return Health > 0; } }
-
-    public Enemy(string name, int health, int attack)
+    public Enemy(int health, int attack, int gold)
     {
-        Name = name;
         Health = health;
         Attack = attack;
+        Gold = gold;
     }
-
 
     public void TakeDamage(int damage)
     {
         Health -= damage;
         if (Health < 0)
-        {
             Health = 0;
-        }
     }
 
-    public int AttackPlayer()
+    public bool IsAlive
     {
-        return Attack;
+        get { return Health > 0; }
     }
 
     public static Enemy GenerateRandomEnemy()
     {
-        string[] names = { "Goblin", "Skeleton", "Orc", "Troll" };
-        string name = names[random.Next(names.Length)];
-        int health = random.Next(50, 101);
-        int attack = random.Next(5, 16);
-        return new Enemy(name, health, attack);
+        Random random = new Random();
+        int health = random.Next(30, 50);
+        int attack = random.Next(5, 10);
+        int gold = random.Next(5, 10);
+
+        return new Enemy(health, attack, gold);
     }
 }
+
+class Player
+{
+    public int PlayerLevel { get; private set; }
+    public int Health { get; private set; }
+    public int Attack { get; private set; }
+    public int Gold { get; set; }
+    public int MaxHealth { get; private set; }
+
+    public Player(int health, int attack, int gold, int maxHealth)
+    {
+        PlayerLevel = 1;
+        Health = health;
+        Attack = attack;
+        Gold = gold;
+        MaxHealth = maxHealth;
+    }
+
+    public void LevelUp()
+    {
+        PlayerLevel++;
+        Health += 20;
+        Attack += 5;
+    }
+
+    public void TakeDamage(int damage)
+    {
+        Health -= damage;
+        if (Health < 0)
+            Health = 0;
+    }
+
+    public bool IsAlive
+    {
+        get { return Health > 0; }
+    }
+
+    public void Rest()
+    {
+        int maxHealAmount = PlayerLevel * 10; 
+        int missingHealth = MaxHealth - Health;
+        int healAmount = Math.Min(maxHealAmount, missingHealth);
+    
+        Health = Math.Min(MaxHealth, Health + healAmount); 
+
+        Console.WriteLine("You are healed for {0} health.", healAmount);
+        Console.WriteLine("Your current health: {0}", Health);
+    }
 }
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Player player = new Player(100, 10, 0, 200);
+
+        while (true)
+        {
+            Console.WriteLine("Player Level: {0}", player.PlayerLevel);
+            Console.WriteLine("Player Health: {0}", player.Health);
+            Console.WriteLine("Player Attack: {0}", player.Attack);
+            Console.WriteLine("Player Gold: {0}", player.Gold);
+            Console.WriteLine();
+
+            Console.WriteLine("MENU:");
+            Console.WriteLine("1. Fight");
+            Console.WriteLine("2. Rest");
+            Console.WriteLine("3. Level Up");
+            Console.WriteLine("4. Exit");
+            Console.WriteLine("Enter your choice (1-3):");
+
+            int choice = int.Parse(Console.ReadLine());
+            Console.WriteLine();
+
+            switch (choice)
+            {
+                case 1:
+                    Console.WriteLine("You enter a dark room...");
+                    Console.WriteLine("A monster appears!");
+
+                    Enemy enemy = Enemy.GenerateRandomEnemy();
+                    bool fled = false;
+
+                    while (enemy.IsAlive && player.IsAlive)
+                    {
+                        Console.WriteLine("Player Health: {0}", player.Health);
+                        Console.WriteLine("Enemy Health: {0}", enemy.Health);
+                        Console.WriteLine();
+
+                        Console.WriteLine("\nPlayer's turn:");
+                        Console.WriteLine("1. Attack");
+                        Console.WriteLine("2. Flee");
+
+                        int playerChoice = int.Parse(Console.ReadLine());
+
+                        switch (playerChoice)
+                        {
+                            case 1:
+                                Console.WriteLine("Player attacks!");
+                                int damage = player.Attack;
+                                enemy.TakeDamage(damage);
+                                Console.WriteLine("Enemy takes {0} damage.", damage);
+
+                                if (!enemy.IsAlive)
+                                {
+                                    Console.WriteLine("You defeated the enemy! You gained {0} gold.", enemy.Gold);
+                                    player.Gold += enemy.Gold;
+                                    break;
+                                }
+
+                                Console.WriteLine("Enemy attacks!");
+                                damage = enemy.Attack;
+                                player.TakeDamage(damage);
+                                Console.WriteLine("Player takes {0} damage.", damage);
+
+                                if (!player.IsAlive)
+                                {
+                                    Console.WriteLine("You were defeated! Game over.");
+                                    return;
+                                }
+                                break;
+
+                                                                if (!player.IsAlive)
+                                {
+                                    Console.WriteLine("You were defeated! Game over.");
+                                    return;
+                                }
+                                break;
+
+                            case 2:
+                                Console.WriteLine("You fled from the battle!");
+                                fled = true;
+                                break;
+
+                            default:
+                                Console.WriteLine("Invalid choice! Please enter a valid option.");
+                                break;
+                        }
+
+                        if (fled)
+                        {
+                            break;
+                        }
+                    }
+                    break;
+
+                case 2:
+                    Console.WriteLine("You find a safe spot to rest and regain your health.");
+                    player.Rest();
+                    Console.WriteLine("You feel refreshed and your health is fully restored.");
+                    break;
+
+                case 3:
+                    player.LevelUp();
+                    Console.WriteLine("Congratulations! You leveled up.");
+                    Console.WriteLine();
+                    break;
+
+                case 4:
+                    Console.WriteLine("Exiting game...");
+                    return;
+
+                default:
+                    Console.WriteLine("Invalid choice! Please enter a valid option.");
+                    break;
+            }
+
+            Console.WriteLine();
+        }
+    }
+}
+
