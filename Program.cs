@@ -100,7 +100,7 @@ class Program
             Console.WriteLine();
 
             Console.WriteLine("MENU:");
-            Console.WriteLine("1. Fight");
+            Console.WriteLine("1. Explore The Dungeon");
             Console.WriteLine("2. Rest");
             Console.WriteLine("3. Level Up");
             Console.WriteLine("4. Exit");
