@@ -44,20 +44,34 @@ class Player
     public int Gold { get; set; }
     public int MaxHealth { get; private set; }
 
-    public Player(int health, int attack, int gold, int maxHealth)
+    public Player(int health, int attack, int gold)
     {
         PlayerLevel = 1;
         Health = health;
         Attack = attack;
         Gold = gold;
-        MaxHealth = maxHealth;
+        MaxHealth = 100;
     }
 
     public void LevelUp()
     {
+        int levelUpCost = 50;
+
+        if (Gold >= levelUpCost)
+        {
         PlayerLevel++;
         Health += 20;
         Attack += 5;
+        MaxHealth += 20;
+        Gold -= levelUpCost;
+
+        Console.WriteLine("Congratulations! You've leveled up to level {0}.", PlayerLevel);
+        Console.WriteLine("Your health and attack have increased.");
+        }
+        else
+        {
+            Console.WriteLine("Insufficient gold to level up.");
+        }
     }
 
     public void TakeDamage(int damage)
@@ -74,7 +88,7 @@ class Player
 
     public void Rest()
     {
-        int maxHealAmount = PlayerLevel * 10; 
+        int maxHealAmount = PlayerLevel * 100; 
         int missingHealth = MaxHealth - Health;
         int healAmount = Math.Min(maxHealAmount, missingHealth);
     
@@ -89,7 +103,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Player player = new Player(100, 10, 0, 200);
+        Player player = new Player(100, 10, 0);
 
         while (true)
         {
@@ -100,9 +114,9 @@ class Program
             Console.WriteLine();
 
             Console.WriteLine("MENU:");
-            Console.WriteLine("1. Explore The Dungeon");
+            Console.WriteLine("1. Fight");
             Console.WriteLine("2. Rest");
-            Console.WriteLine("3. Level Up");
+            Console.WriteLine("3. Level Up(50 Gold)");
             Console.WriteLine("4. Exit");
             Console.WriteLine("Enter your choice (1-3):");
 
@@ -189,7 +203,6 @@ class Program
 
                 case 3:
                     player.LevelUp();
-                    Console.WriteLine("Congratulations! You leveled up.");
                     Console.WriteLine();
                     break;
 
@@ -206,4 +219,3 @@ class Program
         }
     }
 }
-
